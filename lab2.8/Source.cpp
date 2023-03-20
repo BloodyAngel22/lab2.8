@@ -13,10 +13,10 @@ int main() {
 	system("chcp 1251");
 
 	RaggedArray mas;
+	int limiter = 99999;
 
 	mas.data = (int**)malloc(sizeof(int*) * mas.rows);
-	mas.cols = (int*)malloc(sizeof(int));
-	int limiter = 999999;
+	mas.cols = (int*)malloc(sizeof(int) * limiter);
 
 	printf("rows = "); scanf_s("%d", &mas.rows);
 	for (int i = 0; i < mas.rows; i++) {
@@ -34,7 +34,7 @@ int main() {
 			mas.data[i][j] = mas.tmp[j];
 		}
 	}
-
+	printf("\n\n"); printf("Вывод элементов массива\n");
 	for (int i = 0; i < mas.rows; i++) {
 		for (int j = 0; j < mas.cols[i]; j++) {
 			printf("%d ", mas.data[i][j]);
@@ -44,7 +44,9 @@ int main() {
 
 	for (int i = 0; i < mas.rows; i++)
 		free(mas.data[i]);
-	free(mas.data);
+
+	free(mas.data);//Ошибка
+
 	free(mas.cols);
 	free(mas.tmp);
 }
