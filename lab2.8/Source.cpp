@@ -200,8 +200,9 @@ int main() {
 		printf("Хотите задать или считать массив?\n1 - задать массив\n2 - считать из текстового файла\n3 - считать из бинарного файла\n"); scanf_s("%d", &flag_1);
 	} while (flag_1 > 3 or flag_1 < 1);
 	if (flag_1 == 1) {
-		printf("rows = "); scanf_s("%d", &mas.rows);
-
+		do {
+			printf("rows = "); scanf_s("%d", &mas.rows);
+		} while (mas.rows < 1);
 		mas.data = array_allocate_1(mas);
 		mas.cols = array_allocate_2(mas);
 
