@@ -9,17 +9,16 @@
 struct RaggedArray {
 	int** data = NULL;
 	int rows = 0;
-	int* cols = NULL;
-	int* tmp = NULL;
+	int* cols = NULL; //!
+	int* tmp = NULL; //!
 };
 
-int** array_allocate_1(RaggedArray mas) {
+void array_allocate_1(RaggedArray &mas) {
 	mas.data = (int**)malloc(sizeof(int*) * mas.rows);
 	if (mas.data == NULL) {
 		printf("Память не была выделена для массива\n");
 		exit(1);
 	}
-	return mas.data;
 }
 
 int* array_allocate_2(RaggedArray mas) {
