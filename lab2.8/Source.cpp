@@ -9,8 +9,6 @@
 struct RaggedArray {
 	int** data = NULL;
 	int rows = 0;
-	int* cols = NULL; //!
-	int* tmp = NULL; //!
 };
 
 void array_allocate_1(RaggedArray &mas) {
@@ -21,35 +19,33 @@ void array_allocate_1(RaggedArray &mas) {
 	}
 }
 
-int* array_allocate_2(RaggedArray mas) {
-	mas.cols = (int*)malloc(sizeof(int) * mas.rows);
-	if (mas.cols == NULL) {
-		printf("Память не была выделена для массива\n");
-		exit(1);
-	}
-	return mas.cols;
-}
+//int* array_allocate_2(RaggedArray mas) {
+//	mas.cols = (int*)malloc(sizeof(int) * mas.rows);
+//	if (mas.cols == NULL) {
+//		printf("Память не была выделена для массива\n");
+//		exit(1);
+//	}
+//	return mas.cols;
+//}
 
-int* array_allocate_3(RaggedArray mas) {
-	mas.tmp = (int*)malloc(sizeof(int) * mas.rows);
-	if (mas.tmp == NULL) {
-		printf("Память не была выделена для массива\n");
-		exit(1);
-	}
-	return mas.tmp;
-}
+//int* array_allocate_3(RaggedArray mas) {
+//	mas.tmp = (int*)malloc(sizeof(int) * mas.rows);
+//	if (mas.tmp == NULL) {
+//		printf("Память не была выделена для массива\n");
+//		exit(1);
+//	}
+//	return mas.tmp;
+//}
 
 void memory_release(RaggedArray mas) {
 	for (int i = 0; i < mas.rows; i++)
 		free(mas.data[i]);
 	free(mas.data);
-	free(mas.cols);
-	free(mas.tmp);
 }
 
 void print_array(RaggedArray mas) {
 	for (int i = 0; i < mas.rows; i++) {
-		for (int j = 0; j < mas.cols[i]; j++) {
+		for (int j = 0; mas.data[i][j] != '\0'; j++) {
 			printf("%d ", mas.data[i][j]);
 		}
 		printf("\n");
@@ -58,23 +54,19 @@ void print_array(RaggedArray mas) {
 
 void task(RaggedArray mas, int limiter) {
 	for (int i = 0; i < mas.rows; i++) {
-		int counter = 0;
-		mas.tmp = array_allocate_3(mas);
+		mas.data[i] = (int*)malloc(sizeof(int) * limiter);
 		printf("Введите элементы массива\n");
-		for (int j = 0; j < limiter; j++) {
-			scanf_s("%d", &mas.tmp[j]);
-			if (mas.tmp[j] == '\0') break;
-			counter++;
-		}
-		mas.cols[i] = counter;
-		mas.data[i] = (int*)malloc(sizeof(int) * mas.cols[i]);
-		for (int j = 0; j < mas.cols[i]; j++) {
-			mas.data[i][j] = mas.tmp[j];
+		for (int j = 0; j <= limiter; j++) {
+			scanf_s("%d", &mas.data[i][j]);
+			if (mas.data[i][j] == '\0') {
+				mas.data[i][j] = '\0';
+				break;
+			}
 		}
 	}
 }
 
-void save_in_txt_file(RaggedArray mas, const char* storage_for_txt) {
+void save_in_txt_file(RaggedArray mas, const char* storage_for_txt, int limiter) {
 	FILE* save_in_txt;
 	if (fopen_s(&save_in_txt, storage_for_txt, "w+") != 0) {
 		printf("Не удалось открыть файл");
@@ -82,14 +74,22 @@ void save_in_txt_file(RaggedArray mas, const char* storage_for_txt) {
 	}
 
 	fprintf(save_in_txt, "%d \n", mas.rows);
+	int* cols = (int*)malloc(sizeof(int) * limiter);
+	for (int i = 0; i < mas.rows; i++) {
+		int counter = 0;
+		for (int j = 0; mas.data[i][j] != '\0'; j++) {
+			counter++;
+		}
+		cols[i] = counter;
+	}
 
 	for (int i = 0; i < mas.rows; i++)
-		fprintf(save_in_txt, "%d ", mas.cols[i]);
+		fprintf(save_in_txt, "%d ", cols[i]);
 
 	fprintf(save_in_txt, "\n");
 
 	for (int i = 0; i < mas.rows; i++) {
-		for (int j = 0; j < mas.cols[i]; j++) {
+		for (int j = 0; mas.data[i][j] != '\0'; j++) {
 			fprintf(save_in_txt, "%d ", mas.data[i][j]);
 		}
 		fprintf(save_in_txt, "\n");
@@ -98,7 +98,7 @@ void save_in_txt_file(RaggedArray mas, const char* storage_for_txt) {
 	fclose(save_in_txt);
 }
 
-void save_in_bin_file(RaggedArray mas, const char* storage_for_bin) {
+void save_in_bin_file(RaggedArray mas, const char* storage_for_bin, int limiter) {
 	FILE* save_in_binary = NULL;
 	if (fopen_s(&save_in_binary, storage_for_bin, "wb") != NULL) {
 		printf("Не удалось открыть файл");
@@ -106,12 +106,20 @@ void save_in_bin_file(RaggedArray mas, const char* storage_for_bin) {
 	}
 
 	fwrite(&mas.rows, sizeof(int), 1, save_in_binary);
+	int* cols = (int*)malloc(sizeof(int) * limiter);
+	for (int i = 0; i < mas.rows; i++) {
+		int counter = 0;
+		for (int j = 0; mas.data[i][j] != '\0'; j++) {
+			counter++;
+		}
+		cols[i] = counter;
+	}
 
 	for (int i = 0; i < mas.rows; i++)
-		fwrite(&mas.cols[i], sizeof(int), 1, save_in_binary);
+		fwrite(&cols[i], sizeof(int), 1, save_in_binary);
 
 	for (int i = 0; i < mas.rows; i++) {
-		for (int j = 0; j < mas.cols[i]; j++) {
+		for (int j = 0; j < mas.data[i][j] != '\0'; j++) {
 			fwrite(&mas.data[i][j], sizeof(int), 1, save_in_binary);
 		}
 	}
@@ -119,7 +127,7 @@ void save_in_bin_file(RaggedArray mas, const char* storage_for_bin) {
 	fclose(save_in_binary);
 }
 
-void print_txt_file(RaggedArray mas, const char* storage_for_txt) {
+void print_txt_file(RaggedArray mas, const char* storage_for_txt, int limiter) {
 	FILE* print_txt;
 	if (fopen_s(&print_txt, storage_for_txt, "rt") != 0) {
 		printf("Не удалось открыть файл");
@@ -127,22 +135,22 @@ void print_txt_file(RaggedArray mas, const char* storage_for_txt) {
 	}
 
 
+	int* cols = (int*)malloc(sizeof(int) * limiter);
 	fscanf_s(print_txt, "%d", &mas.rows);
-	mas.data = array_allocate_1(mas);
-	mas.cols = array_allocate_2(mas);
+	array_allocate_1(mas);
 	for (int i = 0; i < mas.rows; i++) {
-		fscanf_s(print_txt, "%d", &mas.cols[i]);
-		mas.data[i] = (int*)malloc(sizeof(int) * mas.cols[i]);
+		fscanf_s(print_txt, "%d", &cols[i]);
+		mas.data[i] = (int*)malloc(sizeof(int) * cols[i]);
 	}
 
 	for (int i = 0; i < mas.rows; i++) {
-		for (int j = 0; j < mas.cols[i]; j++) {
+		for (int j = 0; j < cols[i]; j++) {
 			fscanf_s(print_txt, "%d", &mas.data[i][j]);
 		}
 	}
 
 	for (int i = 0; i < mas.rows; i++) {
-		for (int j = 0; j < mas.cols[i]; j++) {
+		for (int j = 0; j < cols[i]; j++) {
 			printf("%d ", mas.data[i][j]);
 		}
 		printf("\n");
@@ -153,7 +161,7 @@ void print_txt_file(RaggedArray mas, const char* storage_for_txt) {
 	fclose(print_txt);
 }
 
-void print_bin_file(RaggedArray mas, const char* storage_for_bin) {
+void print_bin_file(RaggedArray mas, const char* storage_for_bin, int limiter) {
 	FILE* print_bin = NULL;
 	if (fopen_s(&print_bin, storage_for_bin, "rb") != 0) {
 		printf("Не удалось открыть файл");
@@ -162,21 +170,21 @@ void print_bin_file(RaggedArray mas, const char* storage_for_bin) {
 
 
 	fread(&mas.rows, sizeof(int), 1, print_bin);
-	mas.data = array_allocate_1(mas);
-	mas.cols = array_allocate_2(mas);
+	array_allocate_1(mas);
+	int* cols = (int*)malloc(sizeof(int) * limiter);
 	for (int i = 0; i < mas.rows; i++) {
-		fread(&mas.cols[i], sizeof(int), 1, print_bin);
-		mas.data[i] = (int*)malloc(sizeof(int) * mas.cols[i]);
+		fread(&cols[i], sizeof(int), 1, print_bin);
+		mas.data[i] = (int*)malloc(sizeof(int) * cols[i]);
 	}
 
 	for (int i = 0; i < mas.rows; i++) {
-		for (int j = 0; j < mas.cols[i]; j++) {
+		for (int j = 0; j < cols[i]; j++) {
 			fread(&mas.data[i][j], sizeof(int), 1, print_bin);
 		}
 	}
 
 	for (int i = 0; i < mas.rows; i++) {
-		for (int j = 0; j < mas.cols[i]; j++) {
+		for (int j = 0; j < cols[i]; j++) {
 			printf("%d ", mas.data[i][j]);
 		}
 		printf("\n");
@@ -202,19 +210,18 @@ int main() {
 		do {
 			printf("rows = "); scanf_s("%d", &mas.rows);
 		} while (mas.rows < 1);
-		mas.data = array_allocate_1(mas);
-		mas.cols = array_allocate_2(mas);
+		array_allocate_1(mas);
 
 
 		task(mas, limiter);
 	}
 
 	if (flag_1 == 2) {
-		print_txt_file(mas, storage_for_txt);
+		print_txt_file(mas, storage_for_txt, limiter);
 		exit(1);
 	}
 	if (flag_1 == 3) {
-		print_bin_file(mas, storage_for_bin);
+		print_bin_file(mas, storage_for_bin, limiter);
 		exit(1);
 	}
 
@@ -229,10 +236,10 @@ int main() {
 		} while (switcher > 2 or switcher < 1);
 		switch (switcher) {
 		case 1:
-			save_in_txt_file(mas, storage_for_txt);
+			save_in_txt_file(mas, storage_for_txt, limiter);
 			break;
 		case 2:
-			save_in_bin_file(mas, storage_for_bin);
+			save_in_bin_file(mas, storage_for_bin, limiter);
 			break;
 		}
 	}
